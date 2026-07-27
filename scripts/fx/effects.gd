@@ -1,8 +1,9 @@
 class_name EffectsManager
 extends Node
 ## The "juice" rig: WorldEnvironment glow (HDR 2D bloom), the post-FX screen
-## shader (vignette/grain/aberration/color grade), run dust, landing bursts,
-## perfect-move sparks, storm rain, and camera trauma wiring.
+## shader (vignette/grain/aberration/color grade), run dust, speed lines,
+## landing bursts, perfect-move sparks, storm rain, screen flashes, and
+## camera trauma wiring.
 
 var player: Player
 var cam: GameCamera
@@ -12,13 +13,20 @@ var _post: ColorRect
 var _post_layer: CanvasLayer
 var _dust: CPUParticles2D
 var _rain: CPUParticles2D
+var _speed_lines: CPUParticles2D
 var _t := 0.0
 var _grade_lift := Color(0.06, 0.02, 0.04)
 var _grade_tint := Color(1.0, 0.92, 0.88)
-var _speed_lines: CPUParticles2D
-var _motion_blur_enabled := false
 
-func setup(p_player: Player, p_cam: GameCamera, world_root: Node2D) -> void:
+## Builds a Gradient from parallel offset/color arrays (Gradient.set_color
+## takes an int point INDEX — passing 0.5 as an "offset" truncates to 0).
+static func _ramp(offsets: Array, colors: Array) -> Gradient:
+	var g := Gradient.new()
+	g.offsets = PackedFloat32Array(offsets)
+	g.colors = PackedColorArray(colors)
+	return g
+
+func setup(p_player: Player, p_cam: GameCamera, _world_root: Node2D) -> void:
 	player = p_player
 	cam = p_cam
 
@@ -58,13 +66,8 @@ func setup(p_player: Player, p_cam: GameCamera, world_root: Node2D) -> void:
 	_dust.scale_amount_min = 2.0
 	_dust.scale_amount_max = 4.5
 	_dust.color = Color(0.7, 0.65, 0.62, 0.4)
-	_dust.color_ramp = Gradient.new()
-	var dust_ramp := Gradient.new()
-	dust_ramp.set_color(0, Color(0.8, 0.75, 0.7, 0.5))
-	dust_ramp.set_color(0.3, Color(0.6, 0.55, 0.5, 0.3))
-	dust_ramp.set_color(1.0, Color(0.4, 0.35, 0.3, 0.0))
-	_dust.color_ramp = dust_ramp
-	_dust.scale_curve = Curve.new()
+	_dust.color_ramp = _ramp([0.0, 0.3, 1.0], [
+		Color(0.8, 0.75, 0.7, 0.5), Color(0.6, 0.55, 0.5, 0.3), Color(0.4, 0.35, 0.3, 0.0)])
 	var scale_curve := Curve.new()
 	scale_curve.add_point(Vector2(0.0, 1.0))
 	scale_curve.add_point(Vector2(0.5, 1.5))
@@ -72,9 +75,9 @@ func setup(p_player: Player, p_cam: GameCamera, world_root: Node2D) -> void:
 	_dust.scale_curve = scale_curve
 	player.add_child(_dust)
 
-	# Speed lines for high velocity
+	# Speed lines: horizontal streaks that appear at sprint velocity.
 	_speed_lines = CPUParticles2D.new()
-	_speed_lines.amount = int(30 * SettingsManager.particles_scale())
+	_speed_lines.amount = maxi(int(30 * SettingsManager.particles_scale()), 6)
 	_speed_lines.lifetime = 0.3
 	_speed_lines.direction = Vector2(-1, 0)
 	_speed_lines.spread = 5.0
@@ -85,7 +88,6 @@ func setup(p_player: Player, p_cam: GameCamera, world_root: Node2D) -> void:
 	_speed_lines.scale_amount_max = 2.0
 	_speed_lines.color = Color(1.0, 0.9, 0.7, 0.3)
 	_speed_lines.emitting = false
-	_speed_lines.one_shot = false
 	player.add_child(_speed_lines)
 
 	# Storm rain: streaks falling in camera space, only visible in "storm".
@@ -104,12 +106,8 @@ func setup(p_player: Player, p_cam: GameCamera, world_root: Node2D) -> void:
 	_rain.scale_amount_min = 0.5
 	_rain.scale_amount_max = 1.5
 	_rain.color = Color(0.65, 0.75, 0.95, 0.3)
-	_rain.color_ramp = Gradient.new()
-	var rain_ramp := Gradient.new()
-	rain_ramp.set_color(0, Color(0.7, 0.8, 1.0, 0.4))
-	rain_ramp.set_color(0.5, Color(0.6, 0.7, 0.9, 0.2))
-	rain_ramp.set_color(1.0, Color(0.5, 0.6, 0.8, 0.0))
-	_rain.color_ramp = rain_ramp
+	_rain.color_ramp = _ramp([0.0, 0.5, 1.0], [
+		Color(0.7, 0.8, 1.0, 0.4), Color(0.6, 0.7, 0.9, 0.2), Color(0.5, 0.6, 0.8, 0.0)])
 	_rain.emitting = false
 	cam.add_child(_rain)
 
@@ -134,18 +132,17 @@ func _process(delta: float) -> void:
 		m.set_shader_parameter("exposure", 1.0 + speed_warp * 0.15)
 		m.set_shader_parameter("contrast", 1.1 + speed_warp * 0.1)
 		m.set_shader_parameter("saturation", 1.05 - speed_warp * 0.05)
-	
+
 	if is_instance_valid(player):
 		_dust.emitting = GameManager.state == GameManager.State.PLAYING \
 			and player.is_on_floor() and absf(player.velocity.x) > 180.0
-		
-		# Speed lines at high velocity
+
+		# Speed lines at high velocity, scaled to how fast we're actually going.
 		var show_speed_lines := GameManager.state == GameManager.State.PLAYING \
 			and absf(player.velocity.x) > 650.0
 		_speed_lines.emitting = show_speed_lines
 		if show_speed_lines:
-			_speed_lines.global_position = player.global_position + Vector2(0, -30)
-			_speed_lines.direction = Vector2(-1.0, randf_range(-0.1, 0.1))
+			_speed_lines.position = Vector2(0, -30)
 			_speed_lines.initial_velocity_min = absf(player.velocity.x) * 1.2
 			_speed_lines.initial_velocity_max = absf(player.velocity.x) * 1.6
 
@@ -155,27 +152,27 @@ func _on_theme(theme_name: String) -> void:
 	_grade_tint = t["world_tint"]
 	_rain.emitting = t["rain"] > 0.5
 	player.visual.rim_color = t["rim"]
-	
-	# Update dust color for theme
+
+	# Dust picks up the mood of each theme.
 	if theme_name == "storm":
 		_dust.color = Color(0.6, 0.65, 0.75, 0.35)
-		_dust.color_ramp.set_color(0, Color(0.7, 0.75, 0.9, 0.4))
-		_dust.color_ramp.set_color(1.0, Color(0.4, 0.45, 0.6, 0.0))
+		_dust.color_ramp = _ramp([0.0, 0.3, 1.0], [
+			Color(0.7, 0.75, 0.9, 0.4), Color(0.55, 0.6, 0.75, 0.25), Color(0.4, 0.45, 0.6, 0.0)])
 	elif theme_name == "neon":
 		_dust.color = Color(0.4, 0.3, 0.5, 0.35)
-		_dust.color_ramp.set_color(0, Color(0.6, 0.4, 0.8, 0.4))
-		_dust.color_ramp.set_color(1.0, Color(0.3, 0.2, 0.5, 0.0))
-	else: # dusk
+		_dust.color_ramp = _ramp([0.0, 0.3, 1.0], [
+			Color(0.6, 0.4, 0.8, 0.4), Color(0.45, 0.3, 0.65, 0.25), Color(0.3, 0.2, 0.5, 0.0)])
+	else:   # dusk
 		_dust.color = Color(0.7, 0.65, 0.62, 0.4)
-		_dust.color_ramp.set_color(0, Color(0.8, 0.75, 0.7, 0.5))
-		_dust.color_ramp.set_color(1.0, Color(0.4, 0.35, 0.3, 0.0))
+		_dust.color_ramp = _ramp([0.0, 0.3, 1.0], [
+			Color(0.8, 0.75, 0.7, 0.5), Color(0.6, 0.55, 0.5, 0.3), Color(0.4, 0.35, 0.3, 0.0)])
 
 func _on_quality(_q: int) -> void:
 	_env.environment.glow_enabled = SettingsManager.glow_enabled()
 	_post.visible = SettingsManager.post_fx_enabled()
 	_dust.amount = int(20 * SettingsManager.particles_scale()) + 4
 	_rain.amount = maxi(int(200 * SettingsManager.particles_scale()), 10)
-	_speed_lines.amount = int(30 * SettingsManager.particles_scale())
+	_speed_lines.amount = maxi(int(30 * SettingsManager.particles_scale()), 6)
 
 func _on_landed(impact: float) -> void:
 	if impact > 400.0:
@@ -224,17 +221,14 @@ func _burst(pos: Vector2, color: Color, amount: int, speed: float, gravity_affec
 	b.spread = 80.0
 	b.initial_velocity_min = speed * 0.3
 	b.initial_velocity_max = speed
-	b.gravity = Vector2(0, gravity_affected ? 800.0 : 200.0)
+	b.gravity = Vector2(0, 800.0 if gravity_affected else 200.0)
 	b.scale_amount_min = 2.0
 	b.scale_amount_max = 4.0
 	b.color = color
-	b.color_ramp = Gradient.new()
-	var ramp := Gradient.new()
-	ramp.set_color(0, color)
-	ramp.set_color(0.5, Color(color.r, color.g, color.b, color.a * 0.5))
-	ramp.set_color(1.0, Color(color.r, color.g, color.b, 0.0))
-	b.color_ramp = ramp
-	b.scale_curve = Curve.new()
+	b.color_ramp = _ramp([0.0, 0.5, 1.0], [
+		color,
+		Color(color.r, color.g, color.b, color.a * 0.5),
+		Color(color.r, color.g, color.b, 0.0)])
 	var sc := Curve.new()
 	sc.add_point(Vector2(0.0, 0.5))
 	sc.add_point(Vector2(0.3, 1.0))
@@ -245,11 +239,16 @@ func _burst(pos: Vector2, color: Color, amount: int, speed: float, gravity_affec
 	get_tree().create_timer(1.0).timeout.connect(b.queue_free)
 
 func _screen_flash(color: Color, duration: float) -> void:
+	# ColorRect is not a CanvasLayer — it has no "layer" property, so the
+	# flash gets its own top layer and the whole thing is freed together.
+	var layer := CanvasLayer.new()
+	layer.layer = 100
 	var flash := ColorRect.new()
 	flash.color = color
 	flash.set_anchors_preset(Control.PRESET_FULL_RECT)
-	flash.layer = 100
-	cam.get_viewport().add_child(flash)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(flash)
+	add_child(layer)
 	var tw := create_tween()
 	tw.tween_property(flash, "color:a", 0.0, duration)
-	tw.tween_callback(flash.queue_free)
+	tw.tween_callback(layer.queue_free)

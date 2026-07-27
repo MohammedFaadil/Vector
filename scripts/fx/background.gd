@@ -184,6 +184,7 @@ class StarField extends Node2D:
 			if changed:
 				queue_redraw()
 	var _pts: Array = []
+	var _time := 0.0   # inner classes can't see the outer class's _t
 	func _init() -> void:
 		var rng := RandomNumberGenerator.new()
 		rng.seed = 99
@@ -191,9 +192,13 @@ class StarField extends Node2D:
 			_pts.append([Vector2(rng.randf() * 1920.0, rng.randf() * 620.0),
 				rng.randf_range(0.7, 1.8), rng.randf_range(0.25, 0.9),
 				rng.randf_range(0.5, 2.0)])  # twinkle speed
+	func _process(delta: float) -> void:
+		if visible:
+			_time += delta
+			queue_redraw()   # live twinkle
 	func _draw() -> void:
 		for p in _pts:
-			var twinkle := 0.5 + 0.5 * sin(_t * p[3] + p[0].x * 0.01)
+			var twinkle: float = 0.5 + 0.5 * sin(_time * p[3] + p[0].x * 0.01)
 			draw_circle(p[0], p[1], Color(0.9, 0.95, 1.0, p[2] * intensity * twinkle))
 
 
@@ -203,6 +208,10 @@ class SunDisc extends Node2D:
 		set(v):
 			color = v
 			queue_redraw()
+	var _time := 0.0   # inner classes can't see the outer class's _t
+	func _process(delta: float) -> void:
+		_time += delta
+		queue_redraw()   # animate the corona spikes
 	func _draw() -> void:
 		# Outer glow
 		draw_circle(Vector2.ZERO, 180.0, Color(color, color.a * 0.05))
@@ -214,8 +223,8 @@ class SunDisc extends Node2D:
 		draw_circle(Vector2.ZERO, 35.0, Color(hdr_color.r * 1.5, hdr_color.g * 1.5, hdr_color.b * 1.5, 1.0))
 		# Corona spikes
 		for i in 8:
-			var ang := i * TAU / 8.0 + _t * 0.1
-			var len := 60.0 + 20.0 * sin(_t * 2.0 + i)
+			var ang := i * TAU / 8.0 + _time * 0.1
+			var len := 60.0 + 20.0 * sin(_time * 2.0 + i)
 			draw_line(Vector2.ZERO, Vector2(cos(ang), sin(ang)) * len, Color(color, 0.15), 2.0)
 
 
@@ -415,7 +424,7 @@ class SkylineLayer extends Node2D:
 						Vector2(bx + bw, base_y),
 						Vector2(bx + bw * 0.7, base_y - bh),
 						Vector2(bx + bw * 0.3, base_y - bh)
-					], color)
+					], [color])
 			
 			# Roof details
 			_draw_roof(bx, bw, bh, base_y, roof_style)
@@ -444,7 +453,7 @@ class SkylineLayer extends Node2D:
 					Vector2(bx, roof_y),
 					Vector2(bx + bw * 0.5, roof_y - 30),
 					Vector2(bx + bw, roof_y)
-				], Color(color, color.a * 0.9))
+				], [Color(color, color.a * 0.9)])
 			2: # Domed
 				for i in range(15):
 					var t := float(i) / 14.0
@@ -484,7 +493,7 @@ class SkylineLayer extends Node2D:
 					Vector2(x + 12, roof_y),
 					Vector2(x + 8, roof_y - height),
 					Vector2(x - 8, roof_y - height)
-				], Color(0.2, 0.2, 0.25))
+				], [Color(0.2, 0.2, 0.25)])
 				draw_line(Vector2(x, roof_y - height * 0.5), Vector2(x, roof_y - height * 1.5), Color(0.15, 0.15, 0.2), 2.0)
 			4: # Crane (construction)
 				draw_line(Vector2(x, roof_y), Vector2(x, roof_y - height), Color(0.3, 0.3, 0.35), 4.0)
