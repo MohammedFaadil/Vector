@@ -113,11 +113,11 @@ func _build_main() -> Control:
 	v.add_child(_mk_button("SETTINGS", func(): show_only(_settings)))
 	v.add_child(_mk_button("QUIT", func(): quit_pressed.emit()))
 	v.add_child(_spacer(24))
-	var stats := _mk_title("", 18)
-	stats.add_theme_color_override("font_color", Color(0.8, 0.85, 1.0, 0.6))
-	stats.text = "BEST %d   ·   %d m   ·   %d RUNS" % [
+	_stats = _mk_title("", 18)
+	_stats.add_theme_color_override("font_color", Color(0.8, 0.85, 1.0, 0.6))
+	_stats.text = "BEST %d   ·   %d m   ·   %d RUNS" % [
 		GameManager.high_score, int(GameManager.best_distance), GameManager.total_runs]
-	v.add_child(stats)
+	v.add_child(_stats)
 	var hint := _mk_title("SPACE / W — jump & parkour      S / CTRL — slide & fast-fall", 16)
 	hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.45))
 	v.add_child(hint)
