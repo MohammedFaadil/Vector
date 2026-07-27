@@ -39,7 +39,8 @@ func setup(p_player: Player, p_cam: GameCamera, _world_root: Node2D) -> void:
 	env.glow_bloom = 0.15
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
 	env.glow_hdr_threshold = 1.05   # only HDR-bright pixels bloom (lasers, coins, sun)
-	env.glow_bicubic_upscale = true
+	# Bicubic glow upscale is no longer a per-Environment flag (removed in 4.2);
+	# it lives in project settings as rendering/environment/glow/upscale_mode.
 	_env.environment = env
 	add_child(_env)
 
