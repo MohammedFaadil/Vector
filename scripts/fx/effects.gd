@@ -46,6 +46,12 @@ func setup(p_player: Player, p_cam: GameCamera, _world_root: Node2D) -> void:
 
 	_post_layer = CanvasLayer.new()
 	_post_layer.layer = 90
+	# 2D SCREEN_TEXTURE reads need a BackBufferCopy to actually capture the
+	# framebuffer first — without it the shader samples uninitialized memory
+	# (shows up as full-screen colored static).
+	var backbuffer := BackBufferCopy.new()
+	backbuffer.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+	_post_layer.add_child(backbuffer)
 	_post = ColorRect.new()
 	_post.material = ShaderMaterial.new()
 	_post.material.shader = load("res://shaders/post_fx.gdshader")
