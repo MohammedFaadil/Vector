@@ -73,7 +73,7 @@ func setup(p_player: Player, p_cam: GameCamera, _world_root: Node2D) -> void:
 	scale_curve.add_point(Vector2(0.0, 1.0))
 	scale_curve.add_point(Vector2(0.5, 1.5))
 	scale_curve.add_point(Vector2(1.0, 0.3))
-	_dust.scale_curve = scale_curve
+	_dust.scale_amount_curve = scale_curve
 	player.add_child(_dust)
 
 	# Speed lines: horizontal streaks that appear at sprint velocity.
@@ -234,7 +234,7 @@ func _burst(pos: Vector2, color: Color, amount: int, speed: float, gravity_affec
 	sc.add_point(Vector2(0.0, 0.5))
 	sc.add_point(Vector2(0.3, 1.0))
 	sc.add_point(Vector2(1.0, 0.2))
-	b.scale_curve = sc
+	b.scale_amount_curve = sc
 	b.global_position = pos
 	player.get_parent().add_child(b)
 	get_tree().create_timer(1.0).timeout.connect(b.queue_free)
