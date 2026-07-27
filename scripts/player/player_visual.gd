@@ -147,7 +147,7 @@ func _draw() -> void:
 		var alpha := 0.03 + 0.08 * float(TRAIL_LEN - i) / TRAIL_LEN
 		var offset: Vector2 = _trail[i][1] - global_position
 		# Fade based on velocity difference
-		var vel_diff := (_trail[i][2] - (get_parent() as Node2D).velocity).length() / 500.0
+		var vel_diff: float = ((_trail[i][2] as Vector2) - (get_parent() as CharacterBody2D).velocity).length() / 500.0
 		alpha *= (1.0 - vel_diff * 0.5)
 		_draw_figure(_trail[i][0], offset, Color(0.08, 0.12, 0.25, alpha))
 	
@@ -193,13 +193,13 @@ func _draw() -> void:
 	# Breathing motion - subtle chest expansion
 	if _last_state == S.RUN or _last_state == S.SLIDE:
 		var breath := sin(_breathing_phase) * 0.5
-		var chest_pos := _pose["neck"] + Vector2(0, -8.0 + breath)
+		var chest_pos: Vector2 = _pose["neck"] + Vector2(0, -8.0 + breath)
 		draw_circle(chest_pos, 8.0 + breath, Color(col, 0.1))
 
 func _draw_figure(p: Dictionary, offset: Vector2, col: Color) -> void:
 	var seg := func(a: String, b: String, w: float) -> void:
-		var pa := p[a] + offset
-		var pb := p[b] + offset
+		var pa: Vector2 = p[a] + offset
+		var pb: Vector2 = p[b] + offset
 		draw_line(pa, pb, col, w, true)
 		draw_circle(pa, w * 0.5, col)
 		draw_circle(pb, w * 0.5, col)

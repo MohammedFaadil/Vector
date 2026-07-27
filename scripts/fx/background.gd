@@ -265,15 +265,15 @@ class CloudLayer extends Node2D:
 	
 	func _draw() -> void:
 		for c in _clouds:
-			var x := c[0]
-			var y := c[1]
-			var w := c[2]
-			var h := c[3]
-			var ctype := c[4]
-			var opacity := c[6]
+			var x: float = c[0]
+			var y: float = c[1]
+			var w: float = c[2]
+			var h: float = c[3]
+			var ctype: int = c[4]
+			var opacity: float = c[6]
 			
 			# Choose color based on cloud type (height)
-			var base_color := _colors[min(ctype, _colors.size() - 1)]
+			var base_color: Color = _colors[mini(ctype, _colors.size() - 1)]
 			var cloud_color := Color(base_color, opacity)
 			var highlight_color := Color(base_color.r * 1.3, base_color.g * 1.3, base_color.b * 1.3, opacity * 0.5)
 			
@@ -285,7 +285,7 @@ class CloudLayer extends Node2D:
 				2: # Cirrus - wispy
 					_draw_cirrus(x, y, w, h, cloud_color)
 	
-	func _draw_stratus(x, y, w, h, color, highlight) -> void:
+	func _draw_stratus(x: float, y: float, w: float, h: float, color: Color, highlight: Color) -> void:
 		var layers := 3
 		for i in layers:
 			var ly := y + i * h / layers * 0.5
@@ -298,7 +298,7 @@ class CloudLayer extends Node2D:
 			draw_rect(Rect2(lx, ly, lw, 4.0), Color(c, c.a * 0.5))
 			draw_rect(Rect2(lx, ly + lh - 4.0, lw, 4.0), Color(c, c.a * 0.5))
 	
-	func _draw_cumulus(x, y, w, h, color, highlight) -> void:
+	func _draw_cumulus(x: float, y: float, w: float, h: float, color: Color, highlight: Color) -> void:
 		var rng := RandomNumberGenerator.new()
 		rng.seed = int(x * 100.0 + y * 10.0)
 		var num_puffs := rng.randi_range(5, 10)
@@ -315,7 +315,7 @@ class CloudLayer extends Node2D:
 				var pr2 := rng.randf_range(w * 0.1, w * 0.25)
 				draw_circle(Vector2(px2, py2), pr2, Color(c, c.a * 0.7))
 	
-	func _draw_cirrus(x, y, w, h, color) -> void:
+	func _draw_cirrus(x: float, y: float, w: float, h: float, color: Color) -> void:
 		var rng := RandomNumberGenerator.new()
 		rng.seed = int(x * 100.0 + y * 10.0) + 1000
 		var num_streaks := rng.randi_range(8, 15)
@@ -393,9 +393,9 @@ class SkylineLayer extends Node2D:
 		var base_y := 1080.0
 		for i in _buildings.size():
 			var b: Array = _buildings[i]
-			var bx := b[0]
-			var bw := b[1]
-			var bh := b[2]
+			var bx: float = b[0]
+			var bw: float = b[1]
+			var bh: float = b[2]
 			var style := int(b[3])
 			var roof_style := int(b[4])
 			var detail_level := int(b[5])
@@ -442,7 +442,7 @@ class SkylineLayer extends Node2D:
 					# Window glow
 					draw_rect(Rect2(r.position + Vector2(0, base_y) - Vector2(2, 2), r.size + Vector2(4, 4)), Color(win_color, win_color.a * 0.3))
 
-	func _draw_roof(bx, bw, bh, base_y, roof_style) -> void:
+	func _draw_roof(bx: float, bw: float, bh: float, base_y: float, roof_style: int) -> void:
 		var roof_y := base_y - bh
 		match roof_style:
 			0: # Flat with parapet
@@ -475,7 +475,7 @@ class SkylineLayer extends Node2D:
 					var tw := bw * (0.8 - t * 0.15)
 					draw_rect(Rect2(bx + (bw - tw) * 0.5, ty, tw, 6), Color(0.15, 0.25, 0.15, 0.7))
 
-	func _draw_detail(dtype, x, roof_y, height) -> void:
+	func _draw_detail(dtype: int, x: float, roof_y: float, height: float) -> void:
 		match dtype:
 			0: # Antenna
 				draw_line(Vector2(x, roof_y), Vector2(x, roof_y - height), Color(0.15, 0.15, 0.2), 3.0)

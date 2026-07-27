@@ -78,11 +78,11 @@ func _draw() -> void:
 	
 	# Draw props
 	for p in _props:
-		var ptype := p[0]
-		var px := p[1]
-		var py := p[2]
-		var pw := p[3]
-		var ph := p[4]
+		var ptype: String = p[0]
+		var px: float = p[1]
+		var py: float = p[2]
+		var pw: float = p[3]
+		var ph: float = p[4]
 		
 		match ptype:
 			"ac":
@@ -102,7 +102,7 @@ func _draw() -> void:
 			"stairs":
 				_draw_stairs(px, py, pw, ph)
 
-func _draw_ac_unit(x, y, w, h) -> void:
+func _draw_ac_unit(x: float, y: float, w: float, h: float) -> void:
 	# Main body
 	draw_rect(Rect2(x, y, w, h), _body_color)
 	# Top rim
@@ -116,7 +116,7 @@ func _draw_ac_unit(x, y, w, h) -> void:
 	# Fan hint
 	draw_circle(Vector2(x + w * 0.5, y + h * 0.5), 4.0, Color(0.1, 0.1, 0.15))
 
-func _draw_antenna(x, y, h) -> void:
+func _draw_antenna(x: float, y: float, h: float) -> void:
 	# Main pole
 	draw_line(Vector2(x, y), Vector2(x, y + h), Color(0.12, 0.12, 0.18), 3.0)
 	# Crossbars
@@ -126,7 +126,7 @@ func _draw_antenna(x, y, h) -> void:
 	draw_circle(Vector2(x, y + h), 3.0, Color(1.0, 0.2, 0.2, 0.9))
 	draw_circle(Vector2(x, y + h), 5.0, Color(1.0, 0.2, 0.2, 0.3))
 
-func _draw_vent(x, y, w, h) -> void:
+func _draw_vent(x: float, y: float, w: float, h: float) -> void:
 	# Cylindrical vent
 	draw_rect(Rect2(x, y, w, h), _body_color)
 	draw_rect(Rect2(x, y - 2, w, 3), Color(_rim, _rim.a * 0.7))
@@ -135,7 +135,7 @@ func _draw_vent(x, y, w, h) -> void:
 		var sy := y + 6.0 + i * 12.0
 		draw_line(Vector2(x + 2, sy), Vector2(x + w - 2, sy), Color(0.08, 0.08, 0.12), 2.0)
 
-func _draw_solar_panel(x, y, w, h) -> void:
+func _draw_solar_panel(x: float, y: float, w: float, h: float) -> void:
 	# Panel frame
 	draw_rect(Rect2(x, y, w, h), Color(0.08, 0.08, 0.12))
 	# Cells
@@ -149,7 +149,7 @@ func _draw_solar_panel(x, y, w, h) -> void:
 	# Rim highlight
 	draw_rect(Rect2(x, y - 2, w, 2), Color(_rim, _rim.a * 0.6))
 
-func _draw_satellite_dish(x, y, h) -> void:
+func _draw_satellite_dish(x: float, y: float, h: float) -> void:
 	# Support arm
 	draw_line(Vector2(x, y), Vector2(x, y + h * 0.5), Color(0.15, 0.15, 0.2), 4.0)
 	# Dish parabola
@@ -167,7 +167,7 @@ func _draw_satellite_dish(x, y, h) -> void:
 	draw_line(Vector2(x, dish_y), Vector2(x, dish_y - 15), Color(0.15, 0.15, 0.2), 2.0)
 	draw_circle(Vector2(x, dish_y - 15), 3.0, Color(0.1, 0.1, 0.15))
 
-func _draw_water_tank(x, y, w, h) -> void:
+func _draw_water_tank(x: float, y: float, w: float, h: float) -> void:
 	# Cylindrical tank
 	draw_rect(Rect2(x, y, w, h), _body_color)
 	draw_rect(Rect2(x, y - 3, w, 4), Color(_rim, _rim.a * 0.8))
@@ -181,7 +181,7 @@ func _draw_water_tank(x, y, w, h) -> void:
 		var ry := y + 5.0 + i * 15.0
 		draw_line(Vector2(x + w - 10, ry), Vector2(x + w, ry), Color(0.15, 0.15, 0.2), 1.0)
 
-func _draw_crane(x, y, h) -> void:
+func _draw_crane(x: float, y: float, h: float) -> void:
 	# Vertical mast
 	draw_line(Vector2(x, y), Vector2(x, y + h), Color(0.18, 0.18, 0.22), 5.0)
 	# Horizontal jib
@@ -194,7 +194,7 @@ func _draw_crane(x, y, h) -> void:
 	# Hook
 	draw_circle(Vector2(x + jib_len * 0.8, y + h * 0.6), 4.0, Color(0.2, 0.2, 0.25))
 
-func _draw_stairs(x, y, w, h) -> void:
+func _draw_stairs(x: float, y: float, w: float, h: float) -> void:
 	# Stair access structure
 	draw_rect(Rect2(x, y, w, h), _body_color)
 	draw_rect(Rect2(x, y - 2, w, 3), Color(_rim, _rim.a * 0.7))
