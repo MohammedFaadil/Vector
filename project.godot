@@ -1,15 +1,23 @@
 ; Engine configuration file.
-; Vector Shadow Runner — cinematic 2.5D silhouette parkour runner.
-; Godot 4.3+ project. Open this folder with the Godot editor and press F5.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
 
 config_version=5
+
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
 config/name="Vector: Shadow Runner"
 config/description="A cinematic silhouette parkour runner. Run, vault, slide, wall-run. Escape the grid."
 run/main_scene="res://scenes/main.tscn"
-config/features=PackedStringArray("4.3")
+config/features=PackedStringArray("4.7")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -25,8 +33,6 @@ window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/size/mode=2
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
-window/vsync/vsync_mode=1
 
 [input]
 
@@ -72,7 +78,6 @@ common/physics_ticks_per_second=120
 
 [rendering]
 
-renderer/rendering_method="forward_plus"
 viewport/hdr_2d=true
 anti_aliasing/quality/msaa_2d=1
 environment/defaults/default_clear_color=Color(0.05, 0.05, 0.08, 1)
